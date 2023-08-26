@@ -31,7 +31,6 @@ env_logger = "0.10"
 futures-channel = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
 instant = "0.1"
-lazy_static = "1.4.0"
 log = "0.4"
 noise = "0.8"
 pollster = "0.3"
