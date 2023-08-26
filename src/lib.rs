@@ -307,7 +307,15 @@ pub async fn run() {
                 );
 
                 let to_render = game_state.meshes_to_render(renderer.device(), &settings_clone);
-                match renderer.render(to_render, Some(settings_clone.sky_color.into()), &mut ui) {
+                match renderer.render(
+                    to_render,
+                    Some((
+                        settings_clone.sky_color[0],
+                        settings_clone.sky_color[1],
+                        settings_clone.sky_color[2],
+                    )),
+                    &mut ui,
+                ) {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => renderer.resize(renderer.size()),
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
