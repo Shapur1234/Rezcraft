@@ -7,7 +7,10 @@ fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
 
-    reqwest::Url::parse(&format!("{}/{}", location.origin().unwrap(), file_name)).unwrap()
+    reqwest::Url::parse(&format!("{}{}", location.href().unwrap(), file_name)).unwrap()
+
+    // Dirty hack for gh pages
+    // reqwest::Url::parse(&format!("https://shapur1234.github.io/Rezcraft-Demo/{}", file_name)).unwrap()
 }
 
 #[allow(dead_code)]
