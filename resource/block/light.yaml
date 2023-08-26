@@ -1,0 +1,5 @@
+name: "Light"
+is_transparent: false
+is_solid: true
+is_lightsource: true
+texture: ["pure_white"]

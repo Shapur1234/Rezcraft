@@ -1,0 +1,73 @@
+[package]
+name = "rezcraft"
+description = "Minecraft like game written in rust using wgpu, supporting both native and wasm"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+authors = ["Shapur <48966182+Shapur1234@users.noreply.github.com>"]
+repository = "https://github.com/Shapur1234/Rezcraft"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+
+[profile.profile]
+inherits = "release"
+debug = true
+panic = "abort"
+
+[dependencies]
+block-mesh = "0.2"
+bytemuck = { version = "1.12", features = ["derive"] }
+cfg-if = "1.0"
+cgmath = { version = "0.18", features = ["serde"] }
+ciborium = "0.2.1"
+collision = { version = "0.20", git = "https://github.com/rustgd/collision-rs" }
+egui = "0.22"
+either = { version = "1.8", features = ["serde"] }
+env_logger = "0.10"
+futures-channel = "0.3"
+image = { version = "0.24", default-features = false, features = ["png"] }
+instant = "0.1"
+lazy_static = "1.4.0"
+log = "0.4"
+noise = "0.8"
+pollster = "0.3"
+rand = { version = "0.8", features = ["getrandom"] }
+ref_thread_local = "0.1"
+rle_vec = { version = "0.4", features = ["serialize"] }
+rng = "0.1.0"
+rustc-hash = "1.1"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_yaml = "0.9"
+strum = "0.25"
+strum_macros = "0.25"
+winit = "0.28"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+confy = "0.5"
+egui_wgpu_backend = "0.25"
+egui_winit_platform = "0.19"
+rayon = "1.6"
+wgpu = "0.17"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1"
+console_log = "1.0"
+egui_wgpu_backend = { version = "0.25", features = ["web"] }
+egui_winit_platform = { version = "0.19", features = ["webbrowser"] }
+getrandom = { version = "0.2", features = ["js"] }
+reqwest = "0.11"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+wasm-cookies = "0.2.1"
+wasm_thread = "0.2.0"
+web-sys = { version = "0.3", features = [
+  "Document",
+  "Window",
+  "Element",
+  "Location",
+] }
+wgpu = { version = "0.17", features = ["webgl"] }

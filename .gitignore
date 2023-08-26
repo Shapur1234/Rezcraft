@@ -1,0 +1,14 @@
+/target
+**/*.rs.bk
+Cargo.lock
+bin/
+pkg/
+wasm-pack.log
+./resource/.xdp-icon.ico-5bKR00
+
+perf.data
+flamegraph.svg
+
+/saves
+
+src/game/world/resource_list.rs

@@ -1,0 +1,5 @@
+name: "Brick"
+is_transparent: false
+is_solid: true
+is_lightsource: false
+texture: ["bricks"]

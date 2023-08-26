@@ -1,0 +1,5 @@
+name: "Glass"
+is_transparent: true
+is_solid: true
+is_lightsource: false
+texture: ["glass"]

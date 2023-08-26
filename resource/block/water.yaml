@@ -1,0 +1,5 @@
+name: "Water"
+is_transparent: true
+is_solid: false
+is_lightsource: false
+texture: ["water"]

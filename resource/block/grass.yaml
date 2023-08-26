@@ -1,0 +1,5 @@
+name: "Grass"
+is_transparent: false
+is_solid: true
+is_lightsource: false
+texture: ["grass_top", "grass_side", "dirt"]
