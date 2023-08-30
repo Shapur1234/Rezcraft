@@ -20,7 +20,12 @@
 
 ## How to
 
-#### Controls:
+### Installation: 
+
+
+
+### Controls:
+
 | Key             | Action                           |
 | --------------- | -------------------------------- |
 | Mouse motion    | Rotate camera                    |
@@ -41,7 +46,9 @@
 | Tab             | Pause / Resume                   |
 | Escape          | Exit                             |
 
-## How to build
+## How to run and build locally
+
+* Use [run_native.sh](/scripts/run_native.sh) or [run_wasm.sh](/scripts/run_wasm.sh) 
 
 ## Possible plans for future updates
 
