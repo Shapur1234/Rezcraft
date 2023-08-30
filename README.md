@@ -20,6 +20,34 @@
 
 ## How to
 
-### Controls:
+#### Controls:
+| Key             | Action                           |
+| --------------- | -------------------------------- |
+| Mouse motion    | Rotate camera                    |
+| W / ArrowUp     | Move forward                     |
+| S / ArrowDown   | Move back                        |
+| A / ArrowLeft   | Move left                        |
+| D / ArrowRight  | Move right                       |
+| Space / K       | Move up                          |
+| LShift / J      | Move down                        |
+| X / MouseRight  | Delete block                     |
+| C / MouseLeft   | Place block                      |
+| V / MouseMiddle | Pick block                       |
+| M               | Reload chunk at players position |
+| F5              | Save                             |
+| F9              | Load                             |
+| F11             | Toggle fullscreen                |
+| F12             | Reload settings from config file |
+| Tab             | Pause / Resume                   |
+| Escape          | Exit                             |
 
 ## How to build
+
+## Possible plans for future updates
+
+* Improved worldgen
+* Editable controls
+* Physics, improved collision detection
+* Optionally bake assets into the binary
+* Fancy shader effects
+* Multiplayer
