@@ -1,4 +1,4 @@
-# [Rezcraft](https://shapur1234.github.io/Rezcraft-Demo/ "Link to live demo (mobile controls not supported)")
+# [Rezcraft](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)")
 
 * Minecraft like game written in rust using wgpu
 * Supports both native targets and [wasm](https://en.wikipedia.org/wiki/WebAssembly)
@@ -23,7 +23,23 @@
 
 ### Installation: 
 
+* Run the [web version](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)") without installing anything
+* Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases)
+  * Download a binary for your system and `resource.zip`
+  * Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `resouce` directory are in the same directory
 
+* Your file hierarchy should look like this: 
+```
+├── resource
+│   ├── block
+│   │   ├── ...
+│   ├── icon.png
+│   ├── shader
+│   │   └── ...
+│   └── texture
+│       └── ...
+└── rezcraft (rezcraft.exe on windows)
+```
 
 ### Controls:
 
