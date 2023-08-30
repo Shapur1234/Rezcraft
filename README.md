@@ -67,8 +67,8 @@
 
 ## How to run and build locally
 
-* To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/scripts/run_native.sh) script
-* To build to wasm, use the [run_wasm.sh](/scripts/run_wasm.sh) script
+* To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/script/run_native.sh) script
+* To build to wasm, use the [run_wasm.sh](/script/run_wasm.sh) script
 
 ## Possible plans for future updates
 
