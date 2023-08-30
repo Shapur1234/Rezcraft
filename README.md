@@ -12,7 +12,7 @@
 ## Features
 
 * Highly configurable through in-game settings
-* Parallelised world generation
+* Parallelised world and mesh generation
 * Efficient meshes using [greedy meshing](https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/)
 * Colored lighting system, sunlight
 * Transparency (native only)
