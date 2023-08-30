@@ -28,7 +28,7 @@
   * Download a binary for your system and `resource.zip`
   * Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `resouce` directory are in the same directory
 
-* Your file hierarchy should look like this: 
+* Your directory should look like this: 
 ```
 ├── resource
 │   ├── block
@@ -40,6 +40,8 @@
 │       └── ...
 └── rezcraft (rezcraft.exe on windows)
 ```
+![Directory](/screenshot/directory_strucutre.png?raw=true "Directory")
+
 
 ### Controls:
 
