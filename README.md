@@ -1,6 +1,6 @@
 # [Rezcraft](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)")
 
-* Minecraft like game written in rust using wgpu
+* Voxel engine written in rust using wgpu
 * Supports both native targets and [wasm](https://en.wikipedia.org/wiki/WebAssembly)
 
 ## Screenshots
@@ -11,13 +11,13 @@
 
 ## Features
 
-* Highly configurable through in-game settings
 * Parallelised world and mesh generation
 * Efficient meshes using [greedy meshing](https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/)
+* Easily add custom textures and blocks, modify blocktypes at runtime
 * Colored lighting system, sunlight
+* Configurable through in-app settings
 * Transparency (native only)
 * Savegame system (native only)
-* Easily add custom textures and blocks, modify blocktypes at runtime
 
 ## How to
 
