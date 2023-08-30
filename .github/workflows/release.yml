@@ -32,6 +32,5 @@ jobs:
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: rezcraft
-          include: LICENSE,README.md, resource/resource.zip
           target: ${{ matrix.target }}
           token: ${{ secrets.GITHUB_TOKEN }}
