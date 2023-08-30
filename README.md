@@ -15,6 +15,7 @@
 * Parallelised world generation
 * Efficient meshes using [greedy meshing](https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/)
 * Colored lighting system, sunlight
+* Transparency (native only)
 * Savegame system (native only)
 * Easily add custom textures and blocks, modify blocktypes at runtime
 
@@ -48,7 +49,8 @@
 
 ## How to run and build locally
 
-* Use [run_native.sh](/scripts/run_native.sh) or [run_wasm.sh](/scripts/run_wasm.sh) 
+* To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/scripts/run_native.sh) script
+* To build to wasm, use the [run_wasm.sh](/scripts/run_wasm.sh) script
 
 ## Possible plans for future updates
 
