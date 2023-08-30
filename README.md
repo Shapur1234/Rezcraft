@@ -21,14 +21,13 @@
 
 ## How to
 
-### Installation: 
+### Installation
 
 * Run the [web version](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)") without installing anything
 * Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases)
   * Download a binary for your system and `resource.zip`
   * Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `resouce` directory are in the same directory
-
-* Your directory should look like this: 
+  * Your directory should look like this: 
 ```
 ├── resource
 │   ├── block
@@ -42,7 +41,7 @@
 ```
 ![Directory](/screenshot/directory_strucutre.png?raw=true "Directory")
 
-### Adding custom textures and blocks: 
+### Adding custom textures and blocks
 
 #### Textures
 
@@ -54,7 +53,7 @@
 * Add a `.yaml` block describing file to `./resource/block/`, use one of the exisitng files as a tempalte
 * Blocks and their textures, light souces, and properties such as transparency and solidness can also be edited at runtime (`Edit block` menu while paused) 
 
-### Controls:
+### Controls
 
 | Key             | Action                           |
 | --------------- | -------------------------------- |
@@ -76,7 +75,7 @@
 | Tab             | Pause / Resume                   |
 | Escape          | Exit                             |
 
-## How to run and build locally
+## Build and run locally
 
 * To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/script/run_native.sh) script
 * To build to wasm, use the [run_wasm.sh](/script/run_wasm.sh) script
