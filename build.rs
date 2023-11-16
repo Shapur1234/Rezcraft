@@ -1,9 +1,13 @@
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::Path,
+};
+
 fn main() -> std::io::Result<()> {
-    use std::{
-        fs::{self, File},
-        io::Write,
-        path::Path,
-    };
+    if cfg!(target_os = "linux") {
+        println!("cargo:rustc-link-lib=vulkan");
+    }
 
     let mut block_names = fs::read_dir(Path::new("./").join("resource").join("block"))
         .unwrap()
