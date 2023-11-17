@@ -79,6 +79,7 @@
 
           postInstall = ''
             wrapProgram "$out/bin/rezcraft" --set LD_LIBRARY_PATH ${lib.makeLibraryPath runtimeLibs};
+            cp -r ./resource/ $out/bin/
           '';
         });
       in
@@ -116,6 +117,7 @@
 
           packages = with pkgs;[
             cargo-flamegraph
+            cargo-outdated
             gdb
           ];
 
