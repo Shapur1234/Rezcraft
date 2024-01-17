@@ -82,6 +82,11 @@
 - To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/script/run_native.sh) script
 - To build to wasm, use the [run_wasm.sh](/script/run_wasm.sh) script
 
+## Links
+
+- Source repo - [https://github.com/Shapur1234/Fractl](https://github.com/Shapur1234/Fractl)
+- Crate.io - [TODO](TODO)
+
 ## Possible plans for future updates
 
 - Improved worldgen

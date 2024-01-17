@@ -6,6 +6,9 @@ edition = "2021"
 license = "GPL-3.0-or-later"
 authors = ["Shapur <48966182+Shapur1234@users.noreply.github.com>"]
 repository = "https://github.com/Shapur1234/Rezcraft"
+readme = "README.md"
+keywords = [ "voxel", "engine", "gpu", "webgpu", "wasm" ]
+categories = [ "rendering", "game-engines", "graphics", "games", "web-programming" ]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
