@@ -9,6 +9,7 @@ repository = "https://github.com/Shapur1234/Rezcraft"
 readme = "README.md"
 keywords = [ "voxel", "engine", "gpu", "webgpu", "wasm" ]
 categories = [ "rendering", "game-engines", "graphics", "games", "web-programming" ]
+exclude = [ "screenshot/*" ]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
