@@ -21,6 +21,10 @@ inherits = "release"
 debug = true
 panic = "abort"
 
+[build-dependencies]
+copy_to_output = "2.1.0"
+glob = "0.3"
+
 [dependencies]
 block-mesh = "0.2"
 bytemuck = { version = "1.12", features = ["derive"] }
