@@ -84,8 +84,8 @@
 
 ## Links
 
-- Source repo - [https://github.com/Shapur1234/Fractl](https://github.com/Shapur1234/Fractl)
-- Crate.io - [TODO](TODO)
+- Source repo - [https://github.com/Shapur1234/Rezcraft](https://github.com/Shapur1234/Rezcraft)
+- Crate.io - [https://crates.io/crates/rezcraft](https://crates.io/crates/rezcraft)
 
 ## Possible plans for future updates
 
