@@ -12,7 +12,7 @@ fn main() -> std::io::Result<()> {
     }
 
     println!("cargo:rerun-if-changed=resource/*");
-    copy_to_output("res", &env::var("RELEASE").unwrap()).expect("Could not copy");
+    copy_to_output("resource", &env::var("PROFILE").unwrap()).expect("Could not copy");
 
     let mut block_names = fs::read_dir(Path::new("./").join("resource").join("block"))
         .unwrap()
