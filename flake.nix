@@ -79,7 +79,7 @@
 
           postInstall = ''
             wrapProgram "$out/bin/rezcraft" --set LD_LIBRARY_PATH ${lib.makeLibraryPath runtimeLibs};
-            cp -r ./resource/ $out/bin/
+            cp -r ./res/ $out/bin/
           '';
         });
       in
