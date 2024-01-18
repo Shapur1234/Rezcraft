@@ -3,7 +3,6 @@ use std::{
     hash::{Hash, Hasher},
     mem,
     ops::{Deref, Index},
-    path::PathBuf,
     sync::Arc,
 };
 
@@ -23,6 +22,7 @@ use crate::{
         index::{index_from_pos_2d, index_from_relative_pos_surrounding_cubes},
         loader::load_string_async,
     },
+    RESOURCE_PATH,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -202,7 +202,7 @@ impl BlockManager {
 
                 paths = super::resource_list::BLOCK_NAMES;
             } else {
-                paths = fs::read_dir("./resource/block/")
+                paths = fs::read_dir(RESOURCE_PATH.join("block"))
                     .unwrap()
                     .map(|dir| dir.unwrap().file_name().to_string_lossy().to_string())
                     .collect::<Vec<_>>();
@@ -210,7 +210,7 @@ impl BlockManager {
         }
 
         for block_file_name in paths {
-            let path = PathBuf::from("resource").join("block").join(&block_file_name);
+            let path = RESOURCE_PATH.join("block").join(&block_file_name);
             match load_string_async(path).await {
                 Ok(block_string) => match serde_yaml::from_str::<BlockDescriptor>(block_string.as_str()) {
                     Ok(block_descriptor) => {
@@ -258,7 +258,7 @@ impl BlockManager {
                         .map(|texture_name| texture_name.to_string())
                         .collect()
                 } else {
-                    to_extend = fs::read_dir("./resource/texture/").unwrap().filter_map(|dir| {
+                    to_extend = fs::read_dir(RESOURCE_PATH.join("texture")).unwrap().filter_map(|dir| {
                         let dir_entry = dir.unwrap();
                         if dir_entry.file_type().unwrap().is_file() {
                             dir_entry

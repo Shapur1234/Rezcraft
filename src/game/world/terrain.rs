@@ -53,15 +53,12 @@ const THREAD_SLEEP_TIME: u64 = 10;
 
 struct BlocksThreadRequest {
     pos: Vector3<NonZeroI32>,
-    chunks_folder_path: String,
+    current_save_name: String,
 }
 
 impl BlocksThreadRequest {
-    fn new(pos: Vector3<NonZeroI32>, chunks_folder_path: String) -> Self {
-        Self {
-            pos,
-            chunks_folder_path,
-        }
+    fn new(pos: Vector3<NonZeroI32>, current_save_name: String) -> Self {
+        Self { pos, current_save_name }
     }
 }
 
@@ -180,15 +177,15 @@ impl MeshThreadReturn {
 
 #[cfg(not(target_arch = "wasm32"))]
 struct SaveChunkRequest {
-    chunks_folder_path: String,
+    current_save_name: String,
     chunks: Vec<(String, BlockBuffer)>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl SaveChunkRequest {
-    fn new(chunks_folder_path: String, chunks: Vec<(String, BlockBuffer)>) -> Self {
+    fn new(current_save_name: String, chunks: Vec<(String, BlockBuffer)>) -> Self {
         Self {
-            chunks_folder_path,
+            current_save_name,
             chunks,
         }
     }
@@ -207,7 +204,7 @@ pub struct Terrain {
     light_sender: UnboundedSender<LightThreadRequest>,
     #[cfg(not(target_arch = "wasm32"))]
     chunk_save_sender: UnboundedSender<SaveChunkRequest>,
-    chunks_folder_path: String,
+    current_save_name: String,
     transparency: bool,
     texture_atlas: TextureAtlas,
     loading_chunks: u32,
@@ -220,7 +217,7 @@ impl Terrain {
         transparency: bool,
         texture_atlas: &TextureAtlas,
         seed: u32,
-        save_folder_string: String,
+        current_save_name: String,
         block_manager: BlockManager,
     ) -> Self {
         let (main_mesh_sender, mut thread_mesh_reciever) = unbounded::<MeshThreadRequest>();
@@ -373,19 +370,26 @@ impl Terrain {
                     };
 
                     if recieved_messages.len() == 0 {
-                    thread::sleep(Duration::from_millis(THREAD_SLEEP_TIME))
-                    } else if recieved_messages.try_for_each(|recieved| {
-                        if TERRAIN_GENERATOR.borrow().is_none() {
-                            *TERRAIN_GENERATOR.borrow_mut() = Some(TerrainGenerator::new(seed, block_manager_2.clone()));
-                        }
+                        thread::sleep(Duration::from_millis(THREAD_SLEEP_TIME))
+                    } else if recieved_messages
+                        .try_for_each(|recieved| {
+                            if TERRAIN_GENERATOR.borrow().is_none() {
+                                *TERRAIN_GENERATOR.borrow_mut() =
+                                    Some(TerrainGenerator::new(seed, block_manager_2.clone()));
+                            }
 
-                        let blocks = {
-                            cfg_if! {
-                                if #[cfg(not(target_arch = "wasm32"))] {
-                                    let file_path = recieved.chunks_folder_path.clone() + &chunk_file_name(&recieved.pos);
-
-                                    if let Some(block_buffer) = crate::misc::save_helper::load_block_buffer(file_path) {
-                                        block_buffer
+                            let blocks = {
+                                cfg_if! {
+                                    if #[cfg(not(target_arch = "wasm32"))] {
+                                        if let Some(block_buffer) = crate::misc::save_helper::load_block_buffer(recieved.current_save_name, chunk_file_name(&recieved.pos)) {
+                                            block_buffer
+                                        } else {
+                                            TERRAIN_GENERATOR
+                                                .borrow_mut()
+                                                .as_mut()
+                                                .unwrap()
+                                                .generate_blocks(&recieved.pos)
+                                        }
                                     } else {
                                         TERRAIN_GENERATOR
                                             .borrow_mut()
@@ -393,19 +397,12 @@ impl Terrain {
                                             .unwrap()
                                             .generate_blocks(&recieved.pos)
                                     }
-                                } else {
-                                    TERRAIN_GENERATOR
-                                        .borrow_mut()
-                                        .as_mut()
-                                        .unwrap()
-                                        .generate_blocks(&recieved.pos)
                                 }
-                            }
-                        };
+                            };
 
-                        thread_blocks_sender
-                            .clone()
-                            .unbounded_send(BlocksThreadReturn::new(recieved.pos, blocks))
+                            thread_blocks_sender
+                                .clone()
+                                .unbounded_send(BlocksThreadReturn::new(recieved.pos, blocks))
                         })
                         .is_err()
                     {
@@ -430,7 +427,8 @@ impl Terrain {
                         .for_each(|recieved| {
                             saving_chunks.fetch_add(recieved.chunks.len() as u32, Ordering::Relaxed);
                             save_many(
-                                recieved.chunks_folder_path,
+                                recieved.current_save_name,
+                                "chunks",
                                 recieved.chunks,
                                 Some(saving_chunks.clone()),
                             );
@@ -452,7 +450,7 @@ impl Terrain {
             light_pos_cache_sender: main_lightpos_cache_sender,
             #[cfg(not(target_arch = "wasm32"))]
             chunk_save_sender: main_chunk_save_sender,
-            chunks_folder_path: save_folder_string,
+            current_save_name,
             transparency,
             texture_atlas: texture_atlas.clone_without_image(),
             loading_chunks: 0,
@@ -1102,7 +1100,7 @@ impl Terrain {
         #[cfg(not(target_arch = "wasm32"))]
         self.chunk_save_sender
             .unbounded_send(SaveChunkRequest::new(
-                self.chunks_folder_path.clone(),
+                self.current_save_name.clone(),
                 to_save
                     .into_iter()
                     .map(|(save_name, blocks)| (save_name, (*blocks).clone()))
@@ -1112,11 +1110,11 @@ impl Terrain {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn save(&mut self, chunks_folder_path: impl ToString) {
-        self.chunks_folder_path = chunks_folder_path.to_string();
+    pub fn save(&mut self, current_save_name: impl ToString) {
+        self.current_save_name = current_save_name.to_string();
         self.chunk_save_sender
             .unbounded_send(SaveChunkRequest::new(
-                self.chunks_folder_path.clone(),
+                self.current_save_name.clone(),
                 self.chunks
                     .iter()
                     .map(|(chunk_pos, chunk)| (chunk_file_name(chunk_pos), (*chunk.blocks()).clone()))
@@ -1320,7 +1318,7 @@ impl Terrain {
                 self.requested_chunks_list.insert(*chunk_pos);
 
                 self.blocks_sender
-                    .unbounded_send(BlocksThreadRequest::new(*chunk_pos, self.chunks_folder_path.clone()))
+                    .unbounded_send(BlocksThreadRequest::new(*chunk_pos, self.current_save_name.clone()))
                     .unwrap();
 
                 self.loading_chunks += 1;
@@ -1328,12 +1326,12 @@ impl Terrain {
         }
     }
 
-    pub fn reset_chunks(&mut self, seed: u32, save_folder_string: String) {
+    pub fn reset_chunks(&mut self, seed: u32, current_save_name: String) {
         let mut new_terrain = Terrain::new(
             self.transparency,
             &self.texture_atlas,
             seed,
-            save_folder_string,
+            current_save_name,
             self.block_manager.clone(),
         );
 

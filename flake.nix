@@ -119,6 +119,8 @@
             cargo-flamegraph
             cargo-outdated
             gdb
+            sfz
+            wasm-pack
           ];
 
           LD_LIBRARY_PATH = lib.makeLibraryPath runtimeLibs;

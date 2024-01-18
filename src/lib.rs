@@ -2,13 +2,18 @@ mod engine;
 mod game;
 mod misc;
 
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
+use std::{
+    env,
+    path::PathBuf,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
 };
 
 use cfg_if::cfg_if;
 use cgmath::{Deg, Rad};
+use lazy_static::lazy_static;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 use winit::{
@@ -29,9 +34,21 @@ use crate::{
     misc::{loader::load_binary_async, ui::UI, Settings},
 };
 
-pub(crate) const TITLE: &'static str = "Rezcraft";
-
+pub const TITLE: &'static str = "Rezcraft";
 const FPS_UPDATE_INTERVAL: f64 = 0.1;
+
+lazy_static! {
+    pub static ref RESOURCE_PATH: PathBuf = if let Ok(var) = env::var("RESOURCE_PATH") {
+        PathBuf::from(var)
+    } else {
+        PathBuf::from("res")
+    };
+    pub static ref SAVES_PATH: PathBuf = if let Ok(var) = env::var("SAVES_PATH") {
+        PathBuf::from(var)
+    } else {
+        PathBuf::from("saves")
+    };
+}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub fn dummy_main() {}
@@ -59,7 +76,7 @@ pub async fn run() {
     window.set_cursor_grab(window::CursorGrabMode::Confined).ok();
 
     #[cfg(not(target_arch = "wasm32"))]
-    match load_binary_async("resource/icon.png").await {
+    match load_binary_async(RESOURCE_PATH.join("icon.png")).await {
         Ok(bytes) => match image::load_from_memory(&bytes) {
             Ok(img) => match Icon::from_rgba(img.to_rgba8().into_vec(), img.width(), img.height()) {
                 Ok(icon) => window.set_window_icon(Some(icon)),
@@ -101,7 +118,7 @@ pub async fn run() {
         window,
         BlockVertex::desc(),
         block_manager.all_texture_names(),
-        &"resource/texture".to_string(),
+        &RESOURCE_PATH.join("texture"),
         &settings,
     )
     .await;

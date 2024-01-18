@@ -25,12 +25,12 @@
 
 - Run the [web version](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)") without installing anything
 - Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases)
-  - Download a binary for your system and `resource.zip`
-  - Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `resouce` directory are in the same directory
-  - Your directory should look like this:
+  - Download a binary for your system and `res.zip`
+  - Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `res` directory are in the same directory
+  - Your directory tree should look like this:
 
 ```
-├── resource
+├── res
 │   ├── block
 │   │   └── ...
 │   ├── icon.png
@@ -40,6 +40,8 @@
 │       └── ...
 └── rezcraft (rezcraft.exe on windows)
 ```
+
+- The location of the save and resource directories (defaults are `./saves` and `./res`) can be change by setting the `SAVES_PATH` and `RESOURCE_PATH` enviromental variable
 
 ![Directory](/screenshot/directory_strucutre.png?raw=true "Directory")
 

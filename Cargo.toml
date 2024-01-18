@@ -22,10 +22,6 @@ inherits = "release"
 debug = true
 panic = "abort"
 
-[build-dependencies]
-copy_to_output = "2.1.0"
-glob = "0.3"
-
 [dependencies]
 block-mesh = "0.2"
 bytemuck = { version = "1.12", features = ["derive"] }
@@ -39,6 +35,7 @@ env_logger = "0.10"
 futures-channel = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
 instant = "0.1"
+lazy_static = "1.4"
 log = "0.4"
 noise = "0.8"
 pollster = "0.3"

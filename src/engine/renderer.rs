@@ -16,6 +16,7 @@ use crate::{
         texture_atlas::TextureAtlas,
     },
     misc::{loader::load_string_async, Settings},
+    RESOURCE_PATH,
 };
 
 #[repr(C)]
@@ -212,7 +213,7 @@ impl<P: Projection + Sized + Default> Renderer<P> {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("voxel.wgsl"),
             source: wgpu::ShaderSource::Wgsl(
-                load_string_async("resource/shader/voxel.wgsl")
+                load_string_async(RESOURCE_PATH.join("shader").join("voxel.wgsl"))
                     .await
                     .expect("Failed to load shader 'resource/shader/voxel.wgsl'")
                     .into(),

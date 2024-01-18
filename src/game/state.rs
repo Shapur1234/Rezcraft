@@ -9,7 +9,7 @@ const PURGE_ENABLED: bool = false;
 // const PURGE_ENABLED: bool = cfg!(not(target_arch = "wasm32"));
 
 #[cfg(not(target_arch = "wasm32"))]
-use crate::misc::save_helper::{available_saves, load_player, load_u32, save, save_folder};
+use crate::misc::save_helper::{available_saves, load_player, load_u32, save};
 use crate::{
     game::{
         player::Player,
@@ -29,7 +29,7 @@ pub struct State {
     block_manager: Rc<BlockManager>,
     player: Player,
     seed: u32,
-    save_folder_path: String,
+    current_save_name: String,
     purge_counter: f64,
 }
 
@@ -37,13 +37,13 @@ impl State {
     pub fn new(texture_atlas: &TextureAtlas, block_manager: BlockManager, load_last_save: bool) -> Self {
         let seed = TerrainGenerator::generate_seed();
 
-        let save_folder_path;
+        let current_save_name;
         cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 save_folder_path = "".to_string()
             } else {
-                save_folder_path = if load_last_save {
-                    save_folder(available_saves().into_iter().next().unwrap_or(seed.to_string()))
+                current_save_name = if load_last_save {
+                    available_saves().into_iter().next().unwrap_or(seed.to_string())
                 } else {
                     seed.to_string()
                 }
@@ -55,13 +55,13 @@ impl State {
                 !cfg!(target_arch = "wasm32"),
                 texture_atlas,
                 seed,
-                save_folder_path.clone() + "chunks/",
+                current_save_name.clone() + "/chunks/",
                 block_manager.clone(),
             ),
             player: Player::new(&block_manager),
             block_manager: Rc::new(block_manager),
             seed,
-            save_folder_path,
+            current_save_name,
             purge_counter: 0.0,
         };
 
@@ -180,9 +180,9 @@ impl State {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn save(&mut self) {
         if self.saving_chunks() == 0 {
-            save(self.save_folder_path.clone(), "player", &self.player, false);
-            save(self.save_folder_path.clone(), "seed", &self.seed, false);
-            self.terrain.save(self.save_folder_path.clone() + "chunks");
+            save(self.current_save_name.clone(), "player", &self.player, false);
+            save(self.current_save_name.clone(), "seed", &self.seed, false);
+            self.terrain.save(self.current_save_name.clone());
         } else {
             log::warn!("Already saving")
         }
@@ -192,16 +192,16 @@ impl State {
     pub fn load(&mut self) {
         self.purge_counter = 0.0;
 
-        self.player = if let Some(player) = load_player(self.save_folder_path.clone() + "player") {
+        self.player = if let Some(player) = load_player(self.current_save_name.clone(), "player") {
             player
         } else {
-            log::warn!("Failed loading player from save {:?}", self.save_folder_path);
+            log::warn!("Failed loading player from save {:?}", self.current_save_name);
             Player::new(&self.block_manager)
         };
-        self.seed = if let Some(seed) = load_u32(self.save_folder_path.clone() + "seed") {
+        self.seed = if let Some(seed) = load_u32(self.current_save_name.clone(), "seed") {
             seed
         } else {
-            log::warn!("Failed loading seed from save {:?}", self.save_folder_path);
+            log::warn!("Failed loading seed from save {:?}", self.current_save_name);
             self.seed
         };
 
@@ -209,7 +209,7 @@ impl State {
             self.terrain.transparency(),
             self.terrain.texture_atlas(),
             self.seed,
-            self.save_folder_path.to_string() + "chunks/",
+            self.current_save_name.to_string(),
             (*self.block_manager).clone(),
         )
     }
@@ -292,21 +292,18 @@ impl State {
     }
 
     pub fn selected_save(&self) -> String {
-        let mut save_folder_path = self.save_folder_path.clone();
-        save_folder_path.pop();
-        save_folder_path.split('/').last().unwrap().to_string()
+        self.current_save_name.clone()
     }
 
-    pub fn set_selected_save(&mut self, save: String) {
+    pub fn set_selected_save(&mut self, save_name: String) {
         #[cfg(not(target_arch = "wasm32"))]
         {
-            self.save_folder_path = save_folder(save)
+            self.current_save_name = save_name;
         }
     }
 
     pub fn cancel_requests(&mut self) {
-        self.terrain
-            .reset_chunks(self.seed, self.save_folder_path.clone() + "chunks/")
+        self.terrain.reset_chunks(self.seed, self.current_save_name.clone())
     }
 
     pub fn block_manager(&self) -> Rc<BlockManager> {
