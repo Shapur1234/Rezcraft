@@ -49,12 +49,12 @@
 
 #### Textures
 
-- Add a `.png` image to `./resource/texture/`, it will be loaded after programm restart
+- Add a `.png` image to `./res/texture/`, it will be loaded after programm restart
 - All texture must be square and all textures must have the same resolution
 
 #### Blocks
 
-- Add a `.yaml` block describing file to `./resource/block/`, use one of the exisitng files as a tempalte
+- Add a `.yaml` block describing file to `./res/block/`, use one of the exisitng files as a tempalte
 - Blocks and their textures, light souces, and properties such as transparency and solidness can also be edited at runtime (`Edit block` menu while paused)
 
 ### Controls
