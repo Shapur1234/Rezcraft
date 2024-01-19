@@ -8,7 +8,7 @@ use std::{
     },
 };
 
-use rayon::prelude::*;
+use cfg_if::cfg_if;
 use serde::Serialize;
 
 use crate::{
@@ -101,10 +101,22 @@ pub fn save_many(
     objects: Vec<(impl ToString + Sync, impl Serialize + Sync)>,
     counter: Option<Arc<AtomicU32>>,
 ) {
+    let iterator;
+    cfg_if! {
+        if #[cfg(feature = "rayon")] {
+            use rayon::prelude::*;
+
+            iterator = objects.into_par_iter();
+        } else {
+            iterator = objects.into_iter();
+
+        }
+    }
+
     let (save_name, directory_name) = (save_name.to_string(), directory_name.to_string());
 
     if let Some(counter) = counter {
-        objects.into_par_iter().for_each(move |(file_name, object)| {
+        iterator.for_each(move |(file_name, object)| {
             save(
                 &save_name,
                 directory_name.clone() + "/" + &file_name.to_string(),
@@ -114,7 +126,7 @@ pub fn save_many(
             counter.fetch_sub(1, Ordering::Relaxed);
         });
     } else {
-        objects.into_par_iter().for_each(move |(file_name, object)| {
+        iterator.for_each(move |(file_name, object)| {
             save(
                 &save_name,
                 directory_name.clone() + "/" + &file_name.to_string(),
@@ -146,7 +158,6 @@ pub fn load_player(save_name: impl ToString, file_name: impl ToString) -> Option
 pub fn load_block_buffer(save_name: impl ToString, file_name: impl ToString) -> Option<BlockBuffer> {
     let path = SAVES_PATH
         .join(save_name.to_string())
-        .join("chunks".to_string())
         .join(file_name.to_string() + ".cbor");
 
     if let Ok(bytes) = load_binary(&path) {

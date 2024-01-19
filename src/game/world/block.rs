@@ -15,6 +15,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
+#[cfg(feature = "portable")]
+use crate::RESOURCE_DIR;
 use crate::{
     engine::face::FaceDirection,
     game::world::{coordinate_in_surrounding_buffers_cube, CacheUpdateActionKind, ChunkShape, LightSource, CHUNK_SIZE},
@@ -22,7 +24,7 @@ use crate::{
         index::{index_from_pos_2d, index_from_relative_pos_surrounding_cubes},
         loader::load_string_async,
     },
-    RESOURCE_DIR, RESOURCE_PATH,
+    RESOURCE_PATH,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]

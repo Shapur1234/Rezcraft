@@ -101,8 +101,8 @@ impl<'a> UI<'a> {
         }
     }
 
+    #[cfg(feature = "save_system")]
     fn show_saves(&mut self, ctx: &Context) {
-        #[cfg(not(target_arch = "wasm32"))]
         Window::new("Saves")
             .collapsible(false)
             .default_width(0.01)
@@ -420,7 +420,10 @@ impl<'a> crate::engine::GUI for UI<'a> {
         } else {
             self.show_resume(ctx);
             self.show_settings(ctx);
+
+            #[cfg(feature = "save_system")]
             self.show_saves(ctx);
+
             self.show_edit_block(ctx);
         }
     }

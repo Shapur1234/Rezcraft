@@ -11,9 +11,13 @@ keywords = [ "voxel", "engine", "gpu", "webgpu", "wasm" ]
 categories = [ "rendering", "game-engines", "graphics", "games", "web-programming" ]
 exclude = [ "screenshot/*" ]
 
-
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[features]
+default = [ "portable", "save_system", "rayon" ]
+portable = [ "dep:include_dir" ]
+save_system = [ ]
 
 [profile.release]
 codegen-units = 1
@@ -37,13 +41,14 @@ either = { version = "1.8", features = ["serde"] }
 env_logger = "0.10"
 futures-channel = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
-include_dir = "0.7"
+include_dir = { version = "0.7", optional = true }
 instant = "0.1"
 lazy_static = "1.4"
 log = "0.4"
 noise = "0.8"
 pollster = "0.3"
 rand = { version = "0.8", features = ["getrandom"] }
+rayon = { version = "1.6", optional = true }
 ref_thread_local = "0.1"
 rle_vec = { version = "0.4", features = ["serialize"] }
 rng = "0.1.0"
@@ -58,7 +63,6 @@ winit = "0.28"
 confy = "0.5"
 egui_wgpu_backend = "0.25"
 egui_winit_platform = "0.19"
-rayon = "1.6"
 wgpu = "0.17"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

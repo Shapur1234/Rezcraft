@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use cfg_if::cfg_if;
 use winit::event::*;
 
 use crate::engine::{resource::Draw, TextureAtlas};
@@ -8,7 +7,7 @@ use crate::engine::{resource::Draw, TextureAtlas};
 const PURGE_ENABLED: bool = false;
 // const PURGE_ENABLED: bool = cfg!(not(target_arch = "wasm32"));
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "save_system")]
 use crate::misc::save_helper::{available_saves, load_player, load_u32, save};
 use crate::{
     game::{
@@ -29,43 +28,44 @@ pub struct State {
     block_manager: Rc<BlockManager>,
     player: Player,
     seed: u32,
-    current_save_name: String,
     purge_counter: f64,
+    #[cfg(feature = "save_system")]
+    current_save_name: String,
 }
 
 impl State {
     pub fn new(texture_atlas: &TextureAtlas, block_manager: BlockManager, load_last_save: bool) -> Self {
         let seed = TerrainGenerator::generate_seed();
 
-        let current_save_name;
-        cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
-                current_save_name  = "".to_string()
-            } else {
-                current_save_name = if load_last_save {
-                    available_saves().into_iter().next().unwrap_or(seed.to_string())
-                } else {
-                    seed.to_string()
-                }
-            }
-        }
+        #[cfg(feature = "save_system")]
+        let current_save_name = if load_last_save {
+            available_saves().into_iter().next().unwrap_or(seed.to_string())
+        } else {
+            seed.to_string()
+        };
 
         let mut out = Self {
-            terrain: Terrain::new(
-                !cfg!(target_arch = "wasm32"),
-                texture_atlas,
-                seed,
-                current_save_name.clone() + "/chunks/",
-                block_manager.clone(),
-            ),
+            terrain: {
+                let mut terrain = Terrain::new(
+                    !cfg!(target_arch = "wasm32"),
+                    texture_atlas,
+                    seed,
+                    block_manager.clone(),
+                );
+                #[cfg(feature = "save_system")]
+                terrain.set_save_name(current_save_name.clone());
+
+                terrain
+            },
             player: Player::new(&block_manager),
             block_manager: Rc::new(block_manager),
             seed,
+            #[cfg(feature = "save_system")]
             current_save_name,
             purge_counter: 0.0,
         };
 
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(feature = "save_system")]
         if load_last_save {
             out.load();
         }
@@ -177,18 +177,20 @@ impl State {
         self.player.input_mouse(delta)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(feature = "save_system")]
     pub fn save(&mut self) {
         if self.saving_chunks() == 0 {
+            self.terrain.set_save_name(self.current_save_name.clone());
+
             save(self.current_save_name.clone(), "player", &self.player, false);
             save(self.current_save_name.clone(), "seed", &self.seed, false);
-            self.terrain.save(self.current_save_name.clone());
+            self.terrain.save();
         } else {
             log::warn!("Already saving")
         }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(feature = "save_system")]
     pub fn load(&mut self) {
         self.purge_counter = 0.0;
 
@@ -205,13 +207,16 @@ impl State {
             self.seed
         };
 
-        self.terrain = Terrain::new(
-            self.terrain.transparency(),
-            self.terrain.texture_atlas(),
-            self.seed,
-            self.current_save_name.to_string(),
-            (*self.block_manager).clone(),
-        )
+        self.terrain = {
+            let mut terrain = Terrain::new(
+                self.terrain.transparency(),
+                self.terrain.texture_atlas(),
+                self.seed,
+                (*self.block_manager).clone(),
+            );
+            terrain.set_save_name(self.current_save_name.to_string());
+            terrain
+        };
     }
 
     pub fn meshes_to_render(&mut self, device: &wgpu::Device, settings: &Settings) -> Vec<&impl Draw> {
@@ -291,19 +296,21 @@ impl State {
         self.player.selected_block_mut()
     }
 
+    #[cfg(feature = "save_system")]
     pub fn selected_save(&self) -> String {
         self.current_save_name.clone()
     }
 
+    #[cfg(feature = "save_system")]
     pub fn set_selected_save(&mut self, save_name: String) {
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            self.current_save_name = save_name;
-        }
+        self.current_save_name = save_name;
     }
 
     pub fn cancel_requests(&mut self) {
-        self.terrain.reset_chunks(self.seed, self.current_save_name.clone())
+        self.terrain.reset_chunks(self.seed);
+
+        #[cfg(feature = "save_system")]
+        self.terrain.set_save_name(self.current_save_name.clone())
     }
 
     pub fn block_manager(&self) -> Rc<BlockManager> {

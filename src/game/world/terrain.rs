@@ -19,7 +19,7 @@ use ref_thread_local::{ref_thread_local, RefThreadLocal};
 use rustc_hash::{FxHashMap, FxHashSet};
 use strum::IntoEnumIterator;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "save_system")]
 use crate::misc::save_helper::save_many;
 use crate::{
     engine::{face::FaceDirection, TextureAtlas},
@@ -45,9 +45,11 @@ cfg_if! {
         use wasm_thread as thread;
     } else {
         use std::thread;
-        use rayon::prelude::*;
     }
 }
+
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 const THREAD_SLEEP_TIME: u64 = 10;
 
@@ -175,13 +177,13 @@ impl MeshThreadReturn {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "save_system")]
 struct SaveChunkRequest {
     current_save_name: String,
     chunks: Vec<(String, BlockBuffer)>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "save_system")]
 impl SaveChunkRequest {
     fn new(current_save_name: String, chunks: Vec<(String, BlockBuffer)>) -> Self {
         Self {
@@ -202,8 +204,9 @@ pub struct Terrain {
     light_pos_cache_sender: UnboundedSender<LightPosCacheThreadRequest>,
     light_reciever: UnboundedReceiver<LightThreadReturn>,
     light_sender: UnboundedSender<LightThreadRequest>,
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(feature = "save_system")]
     chunk_save_sender: UnboundedSender<SaveChunkRequest>,
+    #[cfg(feature = "save_system")]
     current_save_name: String,
     transparency: bool,
     texture_atlas: TextureAtlas,
@@ -213,13 +216,7 @@ pub struct Terrain {
 }
 
 impl Terrain {
-    pub fn new(
-        transparency: bool,
-        texture_atlas: &TextureAtlas,
-        seed: u32,
-        current_save_name: String,
-        block_manager: BlockManager,
-    ) -> Self {
+    pub fn new(transparency: bool, texture_atlas: &TextureAtlas, seed: u32, block_manager: BlockManager) -> Self {
         let (main_mesh_sender, mut thread_mesh_reciever) = unbounded::<MeshThreadRequest>();
         let (thread_mesh_sender, main_mesh_reciever) = unbounded::<MeshThreadReturn>();
 
@@ -235,12 +232,11 @@ impl Terrain {
                 loop {
                     #[allow(unused_mut)]
                     let mut recieved_messages = {
-                        #[cfg(not(target_arch = "wasm32"))] 
+                        #[cfg(feature = "rayon")] 
                         {
                             collect_messages(&mut thread_mesh_reciever).into_par_iter()
                         }
-
-                        #[cfg(target_arch = "wasm32")] 
+                        #[cfg(not(feature = "rayon"))]
                         {
                             collect_messages(&mut thread_mesh_reciever).into_iter()
                         }
@@ -270,12 +266,11 @@ impl Terrain {
             .spawn(move || loop {
                 #[allow(unused_mut)]
                 let mut recieved_messages = {
-                    #[cfg(not(target_arch = "wasm32"))]
+                    #[cfg(feature = "rayon")]
                     {
                         collect_messages(&mut thread_lightpos_cache_reciever).into_par_iter()
                     }
-
-                    #[cfg(target_arch = "wasm32")]
+                    #[cfg(not(feature = "rayon"))]
                     {
                         collect_messages(&mut thread_lightpos_cache_reciever).into_iter()
                     }
@@ -314,12 +309,11 @@ impl Terrain {
             .spawn(move || loop {
                 #[allow(unused_mut)]
                 let mut recieved_messages = {
-                    #[cfg(not(target_arch = "wasm32"))]
+                    #[cfg(feature = "rayon")]
                     {
                         collect_messages(&mut thread_light_reciever).into_par_iter()
                     }
-
-                    #[cfg(target_arch = "wasm32")]
+                    #[cfg(not(feature = "rayon"))]
                     {
                         collect_messages(&mut thread_light_reciever).into_iter()
                     }
@@ -358,12 +352,11 @@ impl Terrain {
                 loop {
                     #[allow(unused_mut)]
                     let mut recieved_messages = {
-                        #[cfg(not(target_arch = "wasm32"))]
+                        #[cfg(feature = "rayon")]
                         {
                             collect_messages(&mut thread_blocks_reciever).into_par_iter()
                         }
-
-                        #[cfg(target_arch = "wasm32")]
+                        #[cfg(not(feature = "rayon"))]
                         {
                             collect_messages(&mut thread_blocks_reciever).into_iter()
                         }
@@ -380,8 +373,8 @@ impl Terrain {
 
                             let blocks = {
                                 cfg_if! {
-                                    if #[cfg(not(target_arch = "wasm32"))] {
-                                        if let Some(block_buffer) = crate::misc::save_helper::load_block_buffer(recieved.current_save_name, chunk_file_name(&recieved.pos)) {
+                                    if #[cfg(feature = "save_system")] {
+                                        if let Some(block_buffer) = crate::misc::save_helper::load_block_buffer(recieved.current_save_name, "chunks/".to_string() + &chunk_file_name(&recieved.pos)) {
                                             block_buffer
                                         } else {
                                             TERRAIN_GENERATOR
@@ -413,10 +406,11 @@ impl Terrain {
             .unwrap();
 
         let saving_chunks = Arc::new(AtomicU32::new(0));
-        #[cfg(not(target_arch = "wasm32"))]
+
+        #[cfg(feature = "save_system")]
         let (main_chunk_save_sender, mut thread_chunk_save_reciever) = unbounded::<SaveChunkRequest>();
 
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(feature = "save_system")]
         {
             let saving_chunks = saving_chunks.clone();
             thread::Builder::new()
@@ -448,15 +442,21 @@ impl Terrain {
             light_sender: main_light_sender,
             light_pos_cache_reciever: main_lightpos_cache_reciever,
             light_pos_cache_sender: main_lightpos_cache_sender,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(feature = "save_system")]
             chunk_save_sender: main_chunk_save_sender,
-            current_save_name,
+            #[cfg(feature = "save_system")]
+            current_save_name: String::default(),
             transparency,
             texture_atlas: texture_atlas.clone_without_image(),
             loading_chunks: 0,
             saving_chunks,
             block_manager,
         }
+    }
+
+    #[cfg(feature = "save_system")]
+    pub fn set_save_name(&mut self, name: String) {
+        self.current_save_name = name;
     }
 
     #[allow(dead_code)]
@@ -1077,7 +1077,7 @@ impl Terrain {
             Into::<i32>::into(camera_chunk_pos.z) as f32,
         );
 
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(feature = "save_system")]
         let mut to_save = Vec::new();
 
         self.chunks.retain(|chunk_pos, chunk| {
@@ -1089,15 +1089,14 @@ impl Terrain {
             {
                 true
             } else {
-                #[cfg(not(target_arch = "wasm32"))]
-                {
-                    to_save.push((chunk_file_name(chunk_pos), chunk.blocks()));
-                }
+                #[cfg(feature = "save_system")]
+                to_save.push((chunk_file_name(chunk_pos), chunk.blocks()));
+
                 false
             }
         });
 
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(feature = "save_system")]
         self.chunk_save_sender
             .unbounded_send(SaveChunkRequest::new(
                 self.current_save_name.clone(),
@@ -1109,9 +1108,8 @@ impl Terrain {
             .unwrap();
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn save(&mut self, current_save_name: impl ToString) {
-        self.current_save_name = current_save_name.to_string();
+    #[cfg(feature = "save_system")]
+    pub fn save(&mut self) {
         self.chunk_save_sender
             .unbounded_send(SaveChunkRequest::new(
                 self.current_save_name.clone(),
@@ -1318,7 +1316,16 @@ impl Terrain {
                 self.requested_chunks_list.insert(*chunk_pos);
 
                 self.blocks_sender
-                    .unbounded_send(BlocksThreadRequest::new(*chunk_pos, self.current_save_name.clone()))
+                    .unbounded_send(BlocksThreadRequest::new(*chunk_pos, {
+                        #[cfg(feature = "save_system")]
+                        {
+                            self.current_save_name.clone()
+                        }
+                        #[cfg(not(feature = "save_system"))]
+                        {
+                            String::default()
+                        }
+                    }))
                     .unwrap();
 
                 self.loading_chunks += 1;
@@ -1326,14 +1333,8 @@ impl Terrain {
         }
     }
 
-    pub fn reset_chunks(&mut self, seed: u32, current_save_name: String) {
-        let mut new_terrain = Terrain::new(
-            self.transparency,
-            &self.texture_atlas,
-            seed,
-            current_save_name,
-            self.block_manager.clone(),
-        );
+    pub fn reset_chunks(&mut self, seed: u32) {
+        let mut new_terrain = Terrain::new(self.transparency, &self.texture_atlas, seed, self.block_manager.clone());
 
         mem::swap(self, &mut new_terrain);
         self.chunks = new_terrain.chunks;

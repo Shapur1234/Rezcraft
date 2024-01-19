@@ -13,7 +13,6 @@ use std::{
 
 use cfg_if::cfg_if;
 use cgmath::{Deg, Rad};
-use include_dir::include_dir;
 use lazy_static::lazy_static;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -35,16 +34,23 @@ use crate::{
     misc::{loader::load_binary_async, ui::UI, Settings},
 };
 
-pub static RESOURCE_DIR: include_dir::Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/res");
+#[cfg(feature = "portable")]
+pub static RESOURCE_DIR: include_dir::Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/res");
+
 pub const TITLE: &'static str = "Rezcraft";
 const FPS_UPDATE_INTERVAL: f64 = 0.1;
 
+// #[cfg(not(feature = "portable"))] // TODO
 lazy_static! {
     pub static ref RESOURCE_PATH: PathBuf = if let Ok(var) = env::var("RESOURCE_PATH") {
         PathBuf::from(var)
     } else {
         PathBuf::from("res")
     };
+}
+
+#[cfg(feature = "save_system")]
+lazy_static! {
     pub static ref SAVES_PATH: PathBuf = if let Ok(var) = env::var("SAVES_PATH") {
         PathBuf::from(var)
     } else {
@@ -57,8 +63,6 @@ pub fn dummy_main() {}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub async fn run() {
-    dbg!(RESOURCE_DIR.entries());
-
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -244,7 +248,7 @@ pub async fn run() {
                             },
                         ..
                     } => settings.reload(),
-                    #[cfg(not(target_arch = "wasm32"))]
+                    #[cfg(feature = "save_system")]
                     WindowEvent::KeyboardInput {
                         input:
                             KeyboardInput {
@@ -254,7 +258,7 @@ pub async fn run() {
                             },
                         ..
                     } => game_state.save(),
-                    #[cfg(not(target_arch = "wasm32"))]
+                    #[cfg(feature = "save_system")]
                     WindowEvent::KeyboardInput {
                         input:
                             KeyboardInput {
@@ -305,7 +309,18 @@ pub async fn run() {
 
                 let settings_clone = settings.clone();
                 let mut selected_block = game_state.selected_block_mut().clone();
-                let mut selected_save = game_state.selected_save();
+
+                let mut selected_save = {
+                    #[cfg(feature = "save_system")]
+                    {
+                        game_state.selected_save()
+                    }
+                    #[cfg(not(feature = "save_system"))]
+                    {
+                        "".to_string()
+                    }
+                };
+
                 let (mut do_save, mut do_load) = (false, false);
                 let (last_vertical_fov, last_render_distance) = (
                     settings.vertical_fov,
@@ -351,10 +366,11 @@ pub async fn run() {
                 }
 
                 *game_state.selected_block_mut() = selected_block;
-                game_state.set_selected_save(selected_save);
 
-                #[cfg(not(target_arch = "wasm32"))]
+                #[cfg(feature = "save_system")]
                 {
+                    game_state.set_selected_save(selected_save);
+
                     if do_save {
                         game_state.save();
                     }
