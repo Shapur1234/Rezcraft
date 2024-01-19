@@ -40,7 +40,7 @@ impl State {
         let current_save_name;
         cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
-                save_folder_path = "".to_string()
+                current_save_name  = "".to_string()
             } else {
                 current_save_name = if load_last_save {
                     available_saves().into_iter().next().unwrap_or(seed.to_string())

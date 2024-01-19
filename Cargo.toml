@@ -11,11 +11,14 @@ keywords = [ "voxel", "engine", "gpu", "webgpu", "wasm" ]
 categories = [ "rendering", "game-engines", "graphics", "games", "web-programming" ]
 exclude = [ "screenshot/*" ]
 
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
+codegen-units = 1
 lto = true
+strip = true
 
 [profile.profile]
 inherits = "release"
@@ -34,6 +37,7 @@ either = { version = "1.8", features = ["serde"] }
 env_logger = "0.10"
 futures-channel = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
+include_dir = "0.7"
 instant = "0.1"
 lazy_static = "1.4"
 log = "0.4"

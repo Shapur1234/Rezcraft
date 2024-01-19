@@ -13,6 +13,7 @@ use std::{
 
 use cfg_if::cfg_if;
 use cgmath::{Deg, Rad};
+use include_dir::include_dir;
 use lazy_static::lazy_static;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -34,6 +35,7 @@ use crate::{
     misc::{loader::load_binary_async, ui::UI, Settings},
 };
 
+pub static RESOURCE_DIR: include_dir::Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/res");
 pub const TITLE: &'static str = "Rezcraft";
 const FPS_UPDATE_INTERVAL: f64 = 0.1;
 
@@ -55,6 +57,8 @@ pub fn dummy_main() {}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub async fn run() {
+    dbg!(RESOURCE_DIR.entries());
+
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));

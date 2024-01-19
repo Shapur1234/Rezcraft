@@ -3,8 +3,6 @@ mod chunk;
 mod chunk_data;
 mod light;
 mod mesh;
-#[cfg(target_arch = "wasm32")]
-pub mod resource_list;
 mod terrain;
 mod terrain_generator;
 mod voxel;

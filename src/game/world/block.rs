@@ -22,7 +22,7 @@ use crate::{
         index::{index_from_pos_2d, index_from_relative_pos_surrounding_cubes},
         loader::load_string_async,
     },
-    RESOURCE_PATH,
+    RESOURCE_DIR, RESOURCE_PATH,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -195,17 +195,29 @@ impl BlockManager {
             texture_id_to_name: FxHashMap::default(),
         };
 
-        let paths;
+        let paths: Vec<String>;
         cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 // Working with the web is very fun since you cant list all files in a directory apparently?
 
-                paths = super::resource_list::BLOCK_NAMES;
+                paths = {
+                    let mut out = Vec::new();
+                    for entry in RESOURCE_DIR.get_dir("block").unwrap().entries() {
+                        if let include_dir::DirEntry::File(file) = entry {
+                            if let Some(file_name) = entry.path().file_name() {
+                                if let Some(name) = file_name.to_str() {
+                                    out.push(name.to_string());
+                                }
+                            }
+                        }
+                    }
+                    out
+                };
             } else {
                 paths = fs::read_dir(RESOURCE_PATH.join("block"))
                     .unwrap()
                     .map(|dir| dir.unwrap().file_name().to_string_lossy().to_string())
-                    .collect::<Vec<_>>();
+                    .collect();
             }
         }
 
@@ -252,11 +264,19 @@ impl BlockManager {
             let to_extend: Vec<String>;
             cfg_if! {
                 if #[cfg(target_arch = "wasm32")] {
-                    to_extend = super::resource_list::TEXTURE_NAMES
-                        .to_vec()
-                        .into_iter()
-                        .map(|texture_name| texture_name.to_string())
-                        .collect()
+                    to_extend = {
+                        let mut out = Vec::new();
+                        for entry in RESOURCE_DIR.get_dir("texture").unwrap().entries() {
+                            if let include_dir::DirEntry::File(file) = entry {
+                                if let Some(file_name) = entry.path().file_name() {
+                                    if let Some(name) = file_name.to_str() {
+                                        out.push(name.to_string());
+                                    }
+                                }
+                            }
+                        }
+                        out
+                    };
                 } else {
                     to_extend = fs::read_dir(RESOURCE_PATH.join("texture")).unwrap().filter_map(|dir| {
                         let dir_entry = dir.unwrap();
