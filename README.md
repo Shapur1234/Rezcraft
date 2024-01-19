@@ -5,9 +5,9 @@
 
 ## Screenshots
 
-![Sunlight](/screenshot/2.png?raw=true "Sunlight")
-![Lighting](/screenshot/3.png?raw=true "Lighting")
-![UI](/screenshot/4.png?raw=true "UI")
+![Sunlight](./screenshot/2.png?raw=true "Sunlight")
+![Lighting](./screenshot/3.png?raw=true "Lighting")
+![UI](./screenshot/4.png?raw=true "UI")
 
 ## Features
 
@@ -43,7 +43,7 @@
 
 - The location of the save and resource directories (defaults are `./saves` and `./res`) can be change by setting the `SAVES_PATH` and `RESOURCE_PATH` enviromental variable
 
-![Directory](/screenshot/directory_strucutre.png?raw=true "Directory")
+![Directory](./screenshot/directory_strucutre.png?raw=true "Directory")
 
 ### Adding custom textures and blocks
 
@@ -79,10 +79,24 @@
 | Tab             | Pause / Resume                   |
 | Escape          | Exit                             |
 
-## Build and run locally
+## Building using cargo
 
-- To build for native, use cargo normally (`cargo build --release`) or use the [run_native.sh](/script/run_native.sh) script
-- To build to wasm, use the [run_wasm.sh](/script/run_wasm.sh) script
+- Have [rust](https://www.rust-lang.org/tools/install) installed, or optionally use the included dev shelle: `nix develop`
+- Pick feautres
+
+| Feature     | Description                                                                                     | Notes                                     |
+| ----------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| portable    | Doesn't read resources (textures, shaders...) from disk, but instead bakes them into the binary | Must be enabled when compiling for `wasm` |
+| save_system | Allow for saving and olding of the world                                                        | Doesn't work with `wasm`                  |
+| rayon       | Extra pararelism for loading the world and saving                                               | Doesn't work with `wasm`                  |
+
+- Manually
+  - To build - `cargo build --no-default-features --release --features "Feature1 Feature2"`
+  - To run - `cargo run --no-default-features --release --features "Feature1 Feature2"`
+  - To build for wasm - `wasm-pack build --release --no-default-features --features portable --target web --features wasm_thread/es_modules`
+- Using a build script f
+  - To build for native targets - [run_native.sh](./script/run_native.sh)
+  - To build for wasm - [run_wasm.sh](./script/run_wasm.sh)
 
 ## Links
 
