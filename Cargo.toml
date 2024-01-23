@@ -15,7 +15,7 @@ exclude = [ "screenshot/*" ]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = [ "portable", "save_system", "rayon" ]
+default = [ "portable" ]
 portable = [ "dep:include_dir" ]
 save_system = [ ]
 
@@ -72,7 +72,7 @@ egui_wgpu_backend = { version = "0.25", features = ["web"] }
 egui_winit_platform = { version = "0.19", features = ["webbrowser"] }
 getrandom = { version = "0.2", features = ["js"] }
 reqwest = "0.11"
-wasm-bindgen = "0.2"
+wasm-bindgen = "=0.2.89"
 wasm-bindgen-futures = "0.4"
 wasm-cookies = "0.2.1"
 wasm_thread = "0.2.0"

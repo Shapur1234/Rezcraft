@@ -4,63 +4,67 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # The version of wasm-bindgen-cli needs to match the version in Cargo.lock
+    nixpkgs-for-wasm-bindgen.url = "github:NixOS/nixpkgs/75c13bf6aac049d5fec26c07c28389a72c25a30b";
+
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.rust-analyzer-src.follows = "";
-    };
-
     flake-utils.url = "github:numtide/flake-utils";
 
-    advisory-db = {
-      url = "github:rustsec/advisory-db";
-      flake = false;
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
-
   };
 
-  outputs = { self, nixpkgs, crane, fenix, flake-utils, advisory-db, ... }:
+  outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, nixpkgs-for-wasm-bindgen, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ ];
+          overlays = [ (import rust-overlay) ];
         };
+
         inherit (pkgs) lib;
 
-        runtimeLibs = with pkgs; [
-          vulkan-headers
-          vulkan-loader
-          vulkan-tools
-          vulkan-validation-layers
+        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+          targets = [
+            "wasm32-unknown-unknown"
+            "x86_64-pc-windows-gnu"
+          ];
+          extensions = [ "rust-src" ];
+        };
+        craneLib = ((crane.mkLib pkgs).overrideToolchain rustToolchain).overrideScope' (_final: _prev: {
+          inherit (import nixpkgs-for-wasm-bindgen { inherit system; }) wasm-bindgen-cli;
+        });
 
-          wayland
-          wayland-protocols
+        src = craneLib.cleanCargoSource (craneLib.path ./.);
+
+        runtimeLibs = with pkgs; [
+          vulkan-loader
 
           xorg.libX11
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
+
+          wayland
+          wayland-protocols
         ];
-
-        src = craneLib.cleanCargoSource (craneLib.path ./.);
-
-        craneLib = crane.lib.${system};
-        craneLibLLvmTools = craneLib.overrideToolchain
-          (fenix.packages.${system}.complete.withComponents [
-            "cargo"
-            "llvm-tools"
-            "rustc"
-          ]);
+        LD_LIBRARY_PATH = lib.makeLibraryPath runtimeLibs;
 
         commonArgs = {
           inherit src;
           strictDeps = true;
+
+          pname = "rezcraft";
+          version = "0.1.0";
 
           nativeBuildInputs = with pkgs; [
             makeWrapper
@@ -95,17 +99,10 @@
           my-crate-fmt = craneLib.cargoFmt {
             inherit src;
           };
-
-          my-crate-audit = craneLib.cargoAudit {
-            inherit src advisory-db;
-          };
         };
 
         packages = {
           default = rezcraft;
-          my-crate-llvm-coverage = craneLibLLvmTools.cargoLlvmCov (commonArgs // {
-            inherit cargoArtifacts;
-          });
         };
 
         apps.default = flake-utils.lib.mkApp {
@@ -116,14 +113,18 @@
           checks = self.checks.${system};
 
           packages = with pkgs;[
+            rustToolchain
+            runtimeLibs
+
             cargo-flamegraph
             cargo-outdated
             gdb
+            rustup
             sfz
             wasm-pack
           ];
 
-          LD_LIBRARY_PATH = lib.makeLibraryPath runtimeLibs;
+          inherit LD_LIBRARY_PATH;
         };
       });
 }
