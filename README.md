@@ -43,8 +43,6 @@
 
 - The location of the save and resource directories (defaults are `./saves` and `./res`) can be change by setting the `SAVES_PATH` and `RESOURCE_PATH` enviromental variable
 
-![Directory](./screenshot/directory_strucutre.png?raw=true "Directory")
-
 ### Adding custom textures and blocks
 
 #### Textures
