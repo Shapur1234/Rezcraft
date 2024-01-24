@@ -27,7 +27,7 @@
 - Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases), these binaries have all assets baked into themselves, so you need no resource directory
 
 - Alternatively, if you compile `rezcraft` without the `portable` feature enabled, setup your file structure like this:
-  - Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `res` directory are in the same directory
+  - Have the binary `rezcraft` (or `rezcraft.exe` on windows) and the `res` directory are in the same directory
   - Your directory tree should look like this:
 
 ```
@@ -42,7 +42,7 @@
 └── rezcraft (rezcraft.exe on windows)
 ```
 
-- The location of the save and resource directories (defaults are `./saves` and `./res`) can be change by setting the `SAVES_PATH` and `RESOURCE_PATH` enviromental variable
+- - The location of the save and resource directories (defaults are `./saves` and `./res`) can be change by setting the `SAVES_PATH` and `RESOURCE_PATH` enviromental variable
 
 ### Adding custom textures and blocks
 
