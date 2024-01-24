@@ -2,7 +2,7 @@ use std::{collections::HashMap, path::Path};
 
 use image::{DynamicImage, ImageBuffer, Rgb, RgbImage};
 
-use crate::{engine::resource::Texture, game::world::TextureID, misc::loader::load_binary_async};
+use crate::{engine::resource::Texture, game::world::TextureID, misc::loader::load_resource_binary};
 
 pub struct TextureAtlas {
     texture_buffer: ImageBuffer<Rgb<u8>, Vec<u8>>,
@@ -101,9 +101,8 @@ impl TextureAtlas {
 async fn load_image(texture_name: String, texture_folder: &impl AsRef<Path>) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     let path = texture_folder.as_ref().join(texture_name.clone()).with_extension("png");
 
-    let bytes = load_binary_async(&path)
-        .await
-        .unwrap_or_else(|_| panic!("Failed to load texture: {texture_name:?} - {path:?}"));
+    let bytes =
+        load_resource_binary(&path).unwrap_or_else(|_| panic!("Failed to load texture: {texture_name:?} - {path:?}"));
 
     image::load_from_memory(&bytes)
         .unwrap_or_else(|_| panic!("Failed to parse {texture_name:?} - {path:?} as image"))

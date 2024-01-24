@@ -44,7 +44,13 @@
           inherit (import nixpkgs-for-wasm-bindgen { inherit system; }) wasm-bindgen-cli;
         });
 
-        src = craneLib.cleanCargoSource (craneLib.path ./.);
+        src = lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type:
+            (lib.hasInfix "/rez/" path) ||
+            (craneLib.filterCargoSources path type)
+          ;
+        };
 
         runtimeLibs = with pkgs; [
           vulkan-loader
@@ -65,6 +71,8 @@
 
           pname = "rezcraft";
           version = "0.1.0";
+
+          cargoExtraArgs = "--no-default-features --features rayon,save_system";
 
           nativeBuildInputs = with pkgs; [
             makeWrapper

@@ -3,6 +3,7 @@ use std::{
     hash::{Hash, Hasher},
     mem,
     ops::{Deref, Index},
+    path::PathBuf,
     sync::Arc,
 };
 
@@ -17,14 +18,15 @@ use strum::IntoEnumIterator;
 
 #[cfg(feature = "portable")]
 use crate::RESOURCE_DIR;
+#[cfg(not(feature = "portable"))]
+use crate::RESOURCE_PATH;
 use crate::{
     engine::face::FaceDirection,
     game::world::{coordinate_in_surrounding_buffers_cube, CacheUpdateActionKind, ChunkShape, LightSource, CHUNK_SIZE},
     misc::{
         index::{index_from_pos_2d, index_from_relative_pos_surrounding_cubes},
-        loader::load_string_async,
+        loader::load_resource_string,
     },
-    RESOURCE_PATH,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -186,9 +188,7 @@ pub struct BlockManager {
 }
 
 impl BlockManager {
-    pub async fn new() -> Self {
-        use std::fs;
-
+    pub fn new() -> Self {
         let mut out = Self {
             blocks: FxHashMap::default(),
             all_block_names: Vec::new(),
@@ -199,13 +199,11 @@ impl BlockManager {
 
         let paths: Vec<String>;
         cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
-                // Working with the web is very fun since you cant list all files in a directory apparently?
-
+            if #[cfg(feature = "portable")] {
                 paths = {
                     let mut out = Vec::new();
                     for entry in RESOURCE_DIR.get_dir("block").unwrap().entries() {
-                        if let include_dir::DirEntry::File(file) = entry {
+                        if let include_dir::DirEntry::File(_) = entry {
                             if let Some(file_name) = entry.path().file_name() {
                                 if let Some(name) = file_name.to_str() {
                                     out.push(name.to_string());
@@ -216,6 +214,8 @@ impl BlockManager {
                     out
                 };
             } else {
+                use std::fs;
+
                 paths = fs::read_dir(RESOURCE_PATH.join("block"))
                     .unwrap()
                     .map(|dir| dir.unwrap().file_name().to_string_lossy().to_string())
@@ -224,8 +224,8 @@ impl BlockManager {
         }
 
         for block_file_name in paths {
-            let path = RESOURCE_PATH.join("block").join(&block_file_name);
-            match load_string_async(path).await {
+            let path = PathBuf::new().join("block").join(&block_file_name);
+            match load_resource_string(path) {
                 Ok(block_string) => match serde_yaml::from_str::<BlockDescriptor>(block_string.as_str()) {
                     Ok(block_descriptor) => {
                         out.blocks
@@ -265,11 +265,11 @@ impl BlockManager {
 
             let to_extend: Vec<String>;
             cfg_if! {
-                if #[cfg(target_arch = "wasm32")] {
+                if #[cfg(feature = "portable")] {
                     to_extend = {
                         let mut out = Vec::new();
                         for entry in RESOURCE_DIR.get_dir("texture").unwrap().entries() {
-                            if let include_dir::DirEntry::File(file) = entry {
+                            if let include_dir::DirEntry::File(_) = entry {
                                 if let Some(file_name) = entry.path().file_name() {
                                     if let Some(name) = file_name.to_str() {
                                         out.push(name.to_string());

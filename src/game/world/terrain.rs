@@ -1363,7 +1363,7 @@ impl Terrain {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "save_system")]
 fn chunk_file_name(chunk_pos: &Vector3<impl Into<i32> + Copy>) -> String {
     format!(
         "({}, {}, {})",

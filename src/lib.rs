@@ -31,21 +31,24 @@ use crate::{
         world::{BlockManager, BlockVertex},
         State,
     },
-    misc::{loader::load_binary_async, ui::UI, Settings},
+    misc::{loader::load_resource_binary, ui::UI, Settings},
 };
 
-#[cfg(feature = "portable")]
-pub static RESOURCE_DIR: include_dir::Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/res");
+#[cfg(all(target_arch = "wasm32", feature = "save_system"))]
+compile_error!("feature \"save_system\" cannot be used on wasm");
 
 pub const TITLE: &'static str = "Rezcraft";
 const FPS_UPDATE_INTERVAL: f64 = 0.1;
 
-// #[cfg(not(feature = "portable"))] // TODO
+#[cfg(feature = "portable")]
+pub static RESOURCE_DIR: include_dir::Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/res");
+
+#[cfg(not(feature = "portable"))]
 lazy_static! {
     pub static ref RESOURCE_PATH: PathBuf = if let Ok(var) = env::var("RESOURCE_PATH") {
         PathBuf::from(var)
     } else {
-        PathBuf::from("res")
+        PathBuf::from("./res")
     };
 }
 
@@ -54,7 +57,7 @@ lazy_static! {
     pub static ref SAVES_PATH: PathBuf = if let Ok(var) = env::var("SAVES_PATH") {
         PathBuf::from(var)
     } else {
-        PathBuf::from("saves")
+        PathBuf::from("./saves")
     };
 }
 
@@ -84,7 +87,7 @@ pub async fn run() {
     window.set_cursor_grab(window::CursorGrabMode::Confined).ok();
 
     #[cfg(not(target_arch = "wasm32"))]
-    match load_binary_async(RESOURCE_PATH.join("icon.png")).await {
+    match load_resource_binary("icon.png") {
         Ok(bytes) => match image::load_from_memory(&bytes) {
             Ok(img) => match Icon::from_rgba(img.to_rgba8().into_vec(), img.width(), img.height()) {
                 Ok(icon) => window.set_window_icon(Some(icon)),
@@ -118,7 +121,7 @@ pub async fn run() {
         wasm::register_window_resize(window_resized.clone());
     }
 
-    let block_manager = BlockManager::new().await;
+    let block_manager = BlockManager::new();
     let mut selected_block_template = block_manager.all_rendered_block_names()[0].to_owned();
 
     let mut settings = Settings::load_from_file();
@@ -126,7 +129,7 @@ pub async fn run() {
         window,
         BlockVertex::desc(),
         block_manager.all_texture_names(),
-        &RESOURCE_PATH.join("texture"),
+        &"texture",
         &settings,
     )
     .await;

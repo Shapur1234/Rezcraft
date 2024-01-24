@@ -1,4 +1,7 @@
-use std::{iter, path::Path};
+use std::{
+    iter,
+    path::{Path, PathBuf},
+};
 
 use cgmath::{Rad, Vector2};
 use egui::{Context, FontDefinitions, Style};
@@ -15,8 +18,7 @@ use crate::{
         resource::{Draw, Material, Texture},
         texture_atlas::TextureAtlas,
     },
-    misc::{loader::load_string_async, Settings},
-    RESOURCE_PATH,
+    misc::{loader::load_resource_string, Settings},
 };
 
 #[repr(C)]
@@ -213,8 +215,7 @@ impl<P: Projection + Sized + Default> Renderer<P> {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("voxel.wgsl"),
             source: wgpu::ShaderSource::Wgsl(
-                load_string_async(RESOURCE_PATH.join("shader").join("voxel.wgsl"))
-                    .await
+                load_resource_string(PathBuf::new().join("shader").join("voxel.wgsl"))
                     .expect("Failed to load shader 'resource/shader/voxel.wgsl'")
                     .into(),
             ),

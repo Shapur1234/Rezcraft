@@ -10,7 +10,7 @@ mod voxel;
 pub use block::{Block, BlockBuffer, BlockManager, LightPosCache, TextureID};
 pub use chunk::{
     coordinate_in_surrounding_buffers, coordinate_in_surrounding_buffers_cube, Chunk, ChunkShape, CHUNK_SIZE,
-    CHUNK_SIZE_MESHING, CHUNK_SIZE_VEC,
+    CHUNK_SIZE_MESHING,
 };
 pub use chunk_data::{CacheUpdateActionKind, ChunkData};
 pub use light::{LightBuffer, LightSource, LightVal, MAX_LIGHT_VAL};

@@ -24,8 +24,9 @@
 ### Installation
 
 - Run the [web version](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)") without installing anything
-- Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases)
-  - Download a binary for your system and `res.zip`
+- Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases), these binaries have all assets baked into themselves, so you need no resource directory
+
+- Alternatively, if you compile `rezcraft` without the `portable` feature enabled, setup your file structure like this:
   - Extract both archives in the same directory, so `rezcraft` (or `rezcraft.exe` on windows) and the `res` directory are in the same directory
   - Your directory tree should look like this:
 

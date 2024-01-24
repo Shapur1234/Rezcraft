@@ -6,5 +6,5 @@ pub mod world;
 
 pub use camera::{Camera, CameraController, Projection};
 pub use player::Player;
-pub use ray::{move_pos, Ray};
+pub use ray::move_pos;
 pub use state::State;
