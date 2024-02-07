@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" href="./resource/icon.png" />
+    <link rel="icon" href="./target/icon.png" />
 
     <title>Rezcraft</title>
 
@@ -28,9 +28,10 @@
   </head>
 
   <body id="rezcraft">
-    <script type="module">
-      import init, { run } from "./pkg/rezcraft.js";
+    <script src="./coi-serviceworker.js"></script>
 
+    <script type="module">
+      import init, { run } from "./target/rezcraft.js";
       init().then(() => {
         run();
       });

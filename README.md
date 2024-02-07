@@ -87,13 +87,13 @@
 | ----------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | portable    | Doesn't read resources (textures, shaders...) from disk, but instead bakes them into the binary | Must be enabled when compiling for `wasm` |
 | save_system | Allow for saving and olding of the world                                                        | Doesn't work with `wasm`                  |
-| rayon       | Extra pararelism for loading the world and saving                                               | Doesn't work with `wasm`                  |
+| rayon       | Extra pararelism for loading terrain and saving                                                 | Doesn't work with `wasm`                  |
 
 - Manually
   - To build - `cargo build --no-default-features --release --features "Feature1 Feature2"`
   - To run - `cargo run --no-default-features --release --features "Feature1 Feature2"`
   - To build for wasm - `wasm-pack build --release --no-default-features --features portable --target web --features wasm_thread/es_modules`
-- Using a build script f
+- Using the build script
   - To build for native targets - [run_native.sh](./script/run_native.sh)
   - To build for wasm - [run_wasm.sh](./script/run_wasm.sh)
 

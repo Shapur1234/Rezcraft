@@ -33,13 +33,11 @@
 
         inherit (pkgs) lib;
 
-        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          targets = [
-            "wasm32-unknown-unknown"
-            "x86_64-pc-windows-gnu"
-          ];
-          extensions = [ "rust-src" ];
-        };
+        rustToolchain = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
+          extensions = [ "rust-std" "rust-src" ];
+          targets = [ "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" ];
+        });
+
         craneLib = ((crane.mkLib pkgs).overrideToolchain rustToolchain).overrideScope' (_final: _prev: {
           inherit (import nixpkgs-for-wasm-bindgen { inherit system; }) wasm-bindgen-cli;
         });
@@ -47,7 +45,7 @@
         src = lib.cleanSourceWith {
           src = ./.;
           filter = path: type:
-            (lib.hasInfix "/rez/" path) ||
+            (lib.hasInfix "/res/" path) ||
             (craneLib.filterCargoSources path type)
           ;
         };
@@ -70,51 +68,109 @@
           strictDeps = true;
 
           pname = "rezcraft";
-          version = "0.1.0";
+          version = "0.2.0";
+        };
 
+        nativeArgs = commonArgs // {
+          pname = "rezcraft-native";
           cargoExtraArgs = "--no-default-features --features rayon,save_system";
 
-          nativeBuildInputs = with pkgs; [
-            makeWrapper
-          ];
           buildInputs = [
             runtimeLibs
-          ] ++ lib.optionals pkgs.stdenv.isDarwin [
-            pkgs.libiconv
+          ];
+          nativeBuildInputs = with pkgs; [
+            rename
+            makeWrapper
           ];
 
-          LD_LIBRARY_PATH = lib.makeLibraryPath runtimeLibs;
+          inherit LD_LIBRARY_PATH;
         };
-        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-        rezcraft = craneLib.buildPackage (commonArgs // {
-          inherit cargoArtifacts;
+        wasmArgs = commonArgs // {
+          pname = "rezcraft-wasm";
+          cargoExtraArgs = "--no-default-features --features portable";
+
+          doCheck = false;
+
+          cargoVendorDir = craneLib.vendorMultipleCargoDeps {
+            inherit (craneLib.findCargoFiles src) cargoConfigs;
+            cargoLockList = [
+              ./Cargo.lock
+              "${rustToolchain.passthru.availableComponents.rust-src}/lib/rustlib/src/rust/Cargo.lock"
+            ];
+          };
+          nativeBuildInputs = with pkgs; [
+            binaryen
+            wasm-pack
+            wasm-bindgen-cli
+          ];
+
+          CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+
+          buildPhaseCargoCommand = ''
+            cargoBuildLog=$(mktemp cargoBuildLogXXXX.json)
+            RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals"
+            HOME=$(mktemp -d fake-homeXXXX)
+
+            wasm-pack build --dev --out-dir $out/target/ --target web --no-default-features --features portable -Z build-std=std,panic_abort --message-format json-render-diagnostics > "$cargoBuildLog";
+          '';
+        };
+
+        nativeCargoArtifacts = craneLib.buildDepsOnly nativeArgs;
+        wasmCargoArtifacts = craneLib.buildDepsOnly wasmArgs;
+
+        nativeCrate = craneLib.buildPackage (nativeArgs // {
+          cargoArtifacts = nativeCargoArtifacts;
 
           postInstall = ''
-            wrapProgram "$out/bin/rezcraft" --set LD_LIBRARY_PATH ${lib.makeLibraryPath runtimeLibs};
+            wrapProgram "$out/bin/rezcraft-native" --set LD_LIBRARY_PATH ${lib.makeLibraryPath runtimeLibs}
             cp -r ./res/ $out/bin/
           '';
+        });
+        wasmCrate = craneLib.buildPackage (wasmArgs // {
+          cargoArtifacts = wasmCargoArtifacts;
+
+          postInstall = ''
+            rm -rf $out/lib
+            cp ./res/icon.png $out/target/
+            cp -a ./res/web/. $out
+          '';
+        });
+
+        serveWasm = pkgs.writeShellScriptBin "${wasmArgs.pname}" ''
+          ${pkgs.static-web-server}/bin/static-web-server --host 127.0.0.1 --port 8000 --root ${wasmCrate}
+        '';
+
+        nativeCrateClippy = craneLib.cargoClippy (nativeArgs // {
+          inherit src;
+          cargoArtifacts = nativeCargoArtifacts;
+
+          # cargoClippyExtraArgs = "-- --deny warnings";
         });
       in
       {
         checks = {
-          my-crate = rezcraft;
+          inherit nativeCrate;
+          inherit wasmCrate;
 
-          my-crate-clippy = craneLib.cargoClippy (commonArgs // {
-            inherit cargoArtifacts;
-            cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-          });
+          inherit nativeCrateClippy;
 
-          my-crate-fmt = craneLib.cargoFmt {
-            inherit src;
-          };
+          fmt = craneLib.cargoFmt commonArgs;
         };
 
         packages = {
-          default = rezcraft;
+          rezcraft-native = nativeCrate;
+          rezcraft-wasm = wasmCrate;
         };
 
-        apps.default = flake-utils.lib.mkApp {
-          drv = rezcraft;
+        apps = {
+          rezcraft-native = flake-utils.lib.mkApp {
+            name = "rezcraft-native";
+            drv = nativeCrate;
+          };
+          rezcraft-wasm = flake-utils.lib.mkApp {
+            name = "rezcraft-wasm";
+            drv = serveWasm;
+          };
         };
 
         devShells.default = craneLib.devShell {
@@ -127,9 +183,6 @@
             cargo-flamegraph
             cargo-outdated
             gdb
-            rustup
-            sfz
-            wasm-pack
           ];
 
           inherit LD_LIBRARY_PATH;

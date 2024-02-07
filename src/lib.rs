@@ -2,17 +2,17 @@ mod engine;
 mod game;
 mod misc;
 
-use std::{
-    env,
-    path::PathBuf,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
 };
+
+#[cfg(any(feature = "portable", feature = "save_system"))]
+use std::{env, path::PathBuf};
 
 use cfg_if::cfg_if;
 use cgmath::{Deg, Rad};
+#[cfg(any(feature = "portable", feature = "save_system"))]
 use lazy_static::lazy_static;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
