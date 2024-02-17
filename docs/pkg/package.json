@@ -1,0 +1,30 @@
+{
+  "name": "rezcraft",
+  "collaborators": [
+    "Shapur <48966182+Shapur1234@users.noreply.github.com>"
+  ],
+  "description": "Minecraft like game written in rust using wgpu, supporting both native and wasm",
+  "version": "0.2.0",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shapur1234/Rezcraft"
+  },
+  "files": [
+    "rezcraft_bg.wasm",
+    "rezcraft.js",
+    "rezcraft.d.ts"
+  ],
+  "module": "rezcraft.js",
+  "types": "rezcraft.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "keywords": [
+    "voxel",
+    "engine",
+    "gpu",
+    "webgpu",
+    "wasm"
+  ]
+}
