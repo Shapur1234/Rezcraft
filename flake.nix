@@ -126,6 +126,17 @@
             cp -r ./res/ $out/bin/
           '';
         });
+        winCrate = craneLib.buildPackage (nativeArgs // {
+          doCheck = false;
+
+          CARGO_BUILD_TARGET = "x86_64-pc-windows-gnu";
+
+          depsBuildBuild = with pkgs; [
+            pkgsCross.mingwW64.stdenv.cc
+          ];
+          CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS =
+            "-L native=${pkgs.pkgsCross.mingwW64.windows.pthreads}/lib";
+        });
         wasmCrate = craneLib.buildPackage (wasmArgs // {
           cargoArtifacts = wasmCargoArtifacts;
 
@@ -137,8 +148,7 @@
         });
 
         serveWasm = pkgs.writeShellScriptBin "${wasmArgs.pname}" ''
-          # ${pkgs.static-web-server}/bin/static-web-server --host 127.0.0.1 --port 8000 --root ${wasmCrate}
-          ${pkgs.sfz}/bin/sfz -r
+          cd ${wasmCrate} && ${pkgs.sfz}/bin/sfz -r
         '';
 
         nativeCrateClippy = craneLib.cargoClippy (nativeArgs // {
@@ -151,6 +161,7 @@
       {
         checks = {
           inherit nativeCrate;
+          inherit winCrate;
           inherit wasmCrate;
 
           inherit nativeCrateClippy;
@@ -160,6 +171,7 @@
 
         packages = {
           rezcraft-native = nativeCrate;
+          rezcraft-win = winCrate;
           rezcraft-wasm = wasmCrate;
         };
 
