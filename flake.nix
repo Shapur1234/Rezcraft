@@ -4,8 +4,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # The version of wasm-bindgen-cli needs to match the version in Cargo.lock
-    nixpkgs-for-wasm-bindgen.url = "github:NixOS/nixpkgs/75c13bf6aac049d5fec26c07c28389a72c25a30b";
+    # wasm-bindgen-cli 0.2.91
+    nixpkgs-for-wasm-bindgen.url = "github:NixOS/nixpkgs/38513315386e828b9d296805657726e63e338076";
 
     crane = {
       url = "github:ipetkov/crane";
@@ -108,10 +108,10 @@
 
           buildPhaseCargoCommand = ''
             cargoBuildLog=$(mktemp cargoBuildLogXXXX.json)
-            RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals"
             HOME=$(mktemp -d fake-homeXXXX)
 
-            wasm-pack build --dev --out-dir $out/target/ --target web --no-default-features --features portable -Z build-std=std,panic_abort --message-format json-render-diagnostics > "$cargoBuildLog";
+            RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals"
+            wasm-pack build --out-dir $out/target/ --target web --features wasm_thread/es_modules -Z build-std=std,panic_abort --message-format json-render-diagnostics > "$cargoBuildLog"
           '';
         };
 
@@ -137,7 +137,8 @@
         });
 
         serveWasm = pkgs.writeShellScriptBin "${wasmArgs.pname}" ''
-          ${pkgs.static-web-server}/bin/static-web-server --host 127.0.0.1 --port 8000 --root ${wasmCrate}
+          # ${pkgs.static-web-server}/bin/static-web-server --host 127.0.0.1 --port 8000 --root ${wasmCrate}
+          ${pkgs.sfz}/bin/sfz -r
         '';
 
         nativeCrateClippy = craneLib.cargoClippy (nativeArgs // {
@@ -179,10 +180,13 @@
           packages = with pkgs;[
             rustToolchain
             runtimeLibs
+            wasm-bindgen-cli
 
             cargo-flamegraph
             cargo-outdated
             gdb
+
+            sfz
           ];
 
           inherit LD_LIBRARY_PATH;

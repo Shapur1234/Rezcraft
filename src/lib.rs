@@ -6,13 +6,12 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
-
-#[cfg(any(feature = "portable", feature = "save_system"))]
+#[cfg(any(not(feature = "portable"), feature = "save_system"))]
 use std::{env, path::PathBuf};
 
 use cfg_if::cfg_if;
 use cgmath::{Deg, Rad};
-#[cfg(any(feature = "portable", feature = "save_system"))]
+#[cfg(any(not(feature = "portable"), feature = "save_system"))]
 use lazy_static::lazy_static;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -61,20 +60,25 @@ lazy_static! {
     };
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub fn dummy_main() {}
+#[cfg(target_arch = "wasm32")]
+mod wasm_main {
+    use wasm_bindgen::prelude::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub async fn run() {
-    cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
-        } else {
-            env_logger::init()
-        }
+    // Prevent `wasm_bindgen` from autostarting main on all spawned threads
+    #[wasm_bindgen(start)]
+    pub fn dummy_main() {}
+
+    // Export explicit run function to start main
+    #[wasm_bindgen]
+    pub async fn run() {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+
+        crate::do_run().await
     }
+}
 
+pub async fn do_run() {
     let event_loop = EventLoop::new();
     let window = window::WindowBuilder::new()
         .with_title(TITLE)

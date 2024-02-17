@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" href="./target/icon.png" />
+
+    <title>Rezcraft</title>
+
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+      }
+
+      canvas {
+        background-color: black;
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+
+  <body id="rezcraft">
+    <script src="./coi-serviceworker.js"></script>
+
+    <script type="module">
+      import init, { run } from "./pkg/rezcraft.js";
+      init().then(() => {
+        run();
+      });
+    </script>
+  </body>
+</html>
