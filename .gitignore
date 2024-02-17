@@ -2,7 +2,6 @@
 /target
 **/*.rs.bk
 /bin/
-pkg/
 wasm-pack.log
 ./resource/.xdp-icon.ico-5bKR00
 
