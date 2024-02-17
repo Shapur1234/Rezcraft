@@ -111,7 +111,7 @@
             HOME=$(mktemp -d fake-homeXXXX)
 
             RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals"
-            wasm-pack build --out-dir $out/target/ --target web --features wasm_thread/es_modules -Z build-std=std,panic_abort --message-format json-render-diagnostics > "$cargoBuildLog"
+            wasm-pack build --out-dir $out/target/ --target web --message-format json-render-diagnostics -Z build-std=std,panic_abort > "$cargoBuildLog"
           '';
         };
 
@@ -148,7 +148,7 @@
         });
 
         serveWasm = pkgs.writeShellScriptBin "${wasmArgs.pname}" ''
-          cd ${wasmCrate} && ${pkgs.sfz}/bin/sfz -r
+          ${pkgs.static-web-server}/bin/static-web-server --host 127.0.0.1 --port 8000 --root ${wasmCrate}
         '';
 
         nativeCrateClippy = craneLib.cargoClippy (nativeArgs // {
@@ -199,6 +199,9 @@
             gdb
 
             sfz
+
+            nodePackages.npm
+            wasm-pack
           ];
 
           inherit LD_LIBRARY_PATH;
