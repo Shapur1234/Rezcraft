@@ -111,7 +111,7 @@
             HOME=$(mktemp -d fake-homeXXXX)
 
             RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals"
-            wasm-pack build --out-dir $out/pkg/ --target web --message-format json-render-diagnostics -Z build-std=std,panic_abort > "$cargoBuildLog"
+            wasm-pack build . --out-dir $out/pkg/ --target web -- --message-format json-render-diagnostics -Z build-std=std,panic_abort > "$cargoBuildLog"
           '';
         };
 
