@@ -60,21 +60,19 @@ lazy_static! {
     };
 }
 
-#[cfg(target_arch = "wasm32")]
-mod wasm_main {
-    use wasm_bindgen::prelude::*;
+fn main() {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        env_logger::init();
 
-    // Prevent `wasm_bindgen` from autostarting main on all spawned threads
-    #[wasm_bindgen(start)]
-    pub fn dummy_main() {}
-
-    // Export explicit run function to start main
-    #[wasm_bindgen]
-    pub async fn run() {
+        pollster::block_on(do_run());
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
 
-        crate::do_run().await
+        wasm_bindgen_futures::spawn_local(do_run())
     }
 }
 
