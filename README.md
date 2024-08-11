@@ -25,7 +25,7 @@
 
 - Run the [web version](https://shapur1234.github.io/Rezcraft-Demo/ "Link to web version (mobile controls not supported)") without installing anything
 - Precompiled binaries can be found under [releases](https://github.com/Shapur1234/Rezcraft/releases), these binaries have all assets baked into themselves, so you need no resource directory
-- You can also use included nix developement shell and packages
+- You can also use the included nix developement shell and packages
 - To host the web version locally, use the [script](./script/run_wasm.sh) (inside a nix dev shell)
 
 - Alternatively, if you compile `rezcraft` without the `portable` feature enabled, setup your file structure like this:
